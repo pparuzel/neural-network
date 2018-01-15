@@ -13,4 +13,4 @@ I actually worked out the derivatives for *Gradient Descent* myself so the formu
 For activation function I used *ReLU* so for some random weights a restart will be needed as the net will most likely overshoot the minima.  
 Error function is a simple as possible. *Squared loss function* was applied.  
   
-Same was applied to **sumation/nn.py**. The goal of this NN is to predict the sum of two values.  
+Same was put into **sumation/nn.py**. The goal of this NN is to predict the sum of two values.  
