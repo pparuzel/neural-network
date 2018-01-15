@@ -49,9 +49,9 @@ def learn(W, b, sample, target, learning_rate):
     # activation function
     u = relu(z)
     # backpropagation
-    for inp_i, w_i in zip(sample, W):
+    for i in range(len(sample)):
         # dL_dw === lin'(I, w, b) with respect to 'w'
-        dL_dw = inp_i
+        dL_dw = sample[i]
         # dR_dL === relu'(L)
         dR_dL = relu_p(z)
         # derr_dR === d(err)/d(prediction)
@@ -59,7 +59,7 @@ def learn(W, b, sample, target, learning_rate):
         # delta error
         derr_dw = derr_dR * dR_dL * dL_dw
         # improve weights
-        w_i -= derr_dw * learning_rate
+        W[i] -= derr_dw * learning_rate
     # dL_db === lin'(I, w, b) with respect to 'b'
     dL_db = 1
     derr_db = derr_dR * dR_dL * dL_db
