@@ -77,8 +77,8 @@ def predict(Input, ExpectedOutput, W, b, info=True):
     return cost
 
 
+# main function
 def main():
-
     W, b = [np.random.randn(), np.random.randn()], np.random.randn()
     learning_rate = 0.00001
     reps = 100000
