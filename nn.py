@@ -79,7 +79,7 @@ def predict(Input, ExpectedOutput, W, b, info=True):
         print("Data (Age, Overall): {}\nPrediction (Stamina): {}".format(
             Input, u))
         print("Actual value: {}\nLoss: {}".format(actual, err(u, actual)))
-    return cost
+    return {"out": u, "cost": cost}
 
 
 # main function
