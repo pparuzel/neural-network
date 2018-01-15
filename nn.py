@@ -4,6 +4,7 @@ import numpy as np
 import sys
 
 
+# Fifa players (AGE, OVERALL, STAMINA)
 dataset = [(32, 94, 92), (30, 93, 73), (25, 92, 78), (30, 92, 89), (31, 92, 44),
            (28, 91, 79), (26, 90, 40), (26, 90, 79), (27, 90, 77), (29, 90, 72)]
 
@@ -21,18 +22,22 @@ def lin(InputVector, WeightVector, bias):
     return res + bias
 
 
+# rectified Linear Unit
 def relu(x):
     return max(0, x)
 
 
+# derivative of ReLU
 def relu_p(x):
     return int(x > 0)
 
 
+# loss function
 def err(prediction, target):
     return (prediction - target) ** 2
 
 
+# learning procedure
 def learn(W, b, sample, target, learning_rate):
     # dot product
     z = lin(sample, W, b)
@@ -59,11 +64,12 @@ def learn(W, b, sample, target, learning_rate):
     return W, b
 
 
-def predict(Input, Output, W, b, info=True):
+# predict an output
+def predict(Input, ExpectedOutput, W, b, info=True):
     z = lin(Input, W, b)
     u = relu(z)
-    cost = err(u, Output)
-    actual = Output
+    cost = err(u, ExpectedOutput)
+    actual = ExpectedOutput
     if info:
         print("Data (Age, Overall): {}\nPrediction (Stamina): {}".format(
             Input, u))
