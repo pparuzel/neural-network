@@ -13,6 +13,11 @@ dataset = [(32, 94, 92), (30, 93, 73), (25, 92, 78), (30, 92, 89), (31, 92, 44),
 sergio_ramos = (31, 90, 84)
 
 
+def progressbar(i):
+    print(" [{:<10}] {: 3}%".format('=' * int(i / 10),
+                                    i), flush=True, end="\r")
+
+
 # linear combination
 # v0*w0 + v1*w1 + ... + vk*wk + bias
 def lin(InputVector, WeightVector, bias):
@@ -105,8 +110,8 @@ def main():
         # loss function (doesn't need to be calculated)
         # cost = err(u, rp[2])
         if i % (reps / 100) == 0:
+            progressbar(PERCENT)
             PERCENT += 1
-            print(PERCENT, "%")
         # backpropagation
         for i in range(len(Inp)):
             # dL_dw === lin'(I, w, b) with respect to 'w'
