@@ -1,7 +1,7 @@
 # neural-network
 Everything related to the neural networks I really need to explore
 
-To test **Fifa/nn.py** with predefined weights and bias - type:
+To test **fifa/nn.py** with predefined weights and bias - type:
 ```
 python3 nn.py '[0.7367558056631766, 0.45169329115720835]' 13.96682537688979
 ```
@@ -14,3 +14,6 @@ For activation function I used *ReLU* so for some random weights a restart will 
 Error function is a simple as possible. *Squared loss function* was applied.  
   
 Same was put into **sumation/nn.py**. The goal of this NN is to predict the sum of two values.  
+  
+**xor_problem/nn.py** - super simple XOR Problem that single-layer perceptron is unable to resolve.  
+**MLP** (MultiLayer Perceptron) is required.  
