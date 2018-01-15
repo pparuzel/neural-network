@@ -5,3 +5,5 @@ To test **nn.py** with predefined weights and bias type:
 ```
 python3 nn.py '[0.7367558056631766, 0.45169329115720835]' 13.96682537688979
 ```
+
+I actually worked out the derivatives for *Gradient Descent* myself so the formulas might sometimes occur invalid
