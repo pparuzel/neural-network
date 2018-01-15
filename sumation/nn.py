@@ -92,6 +92,7 @@ def main():
 
     print("'{}' {}".format(W, b))
 
+    # Predict 100 + 3 sum
     v = [100, 3, 103]
     ans = predict(v[:-1], v[2], W, b, info=False)
     print("{} + {}\t=?=\t{} ({}) - cost: {}".format(
