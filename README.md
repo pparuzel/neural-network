@@ -19,6 +19,6 @@ Error function is a simple as possible. *Squared loss function* was applied.
 Same was put into **sumation/nn.py**. The goal of this NN is to predict the sum of two values.  
   
 ## Predicting result of x XOR y = z
-#### Purpose: To show that SLP-NN is insufficient to find perfect solution.
+#### Purpose: To show that Single-perceptron NN is insufficient to find perfect solution.
 **xor_problem/nn.py** - super simple XOR Problem that single-layer perceptron is unable to resolve.  
 **MLP** (MultiLayer Perceptron) is required.  
