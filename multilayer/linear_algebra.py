@@ -6,6 +6,7 @@ class Matrix():
         elif type(values) is list:
             if type(values[0]) is not list:
                 values = [values]
+            values = [values[i][:] for i in range(len(values))]
             self.m = values
         else:
             raise BaseException("Wrong fill argument")
@@ -79,6 +80,25 @@ class Matrix():
               for i in range(L.cols())]
         return Matrix(Mm)
 
+    def __sub__(self, rhs):
+        M = Matrix(self.m)
+        if not isinstance(rhs, Matrix):
+            for row in range(self.rows()):
+                for col in range(self.cols()):
+                    M.m[row][col] -= rhs
+        else:
+            for row in range(self.rows()):
+                for col in range(self.cols()):
+                    M.m[row][col] -= rhs.m[row][col]
+        return M
+
+    def __pow__(self, rhs):
+        M = Matrix(self.m)
+        for row in range(self.rows()):
+            for col in range(self.cols()):
+                M.m[row][col] = M.m[row][col] ** rhs
+        return M
+
     def __str__(self):
         s = ""
         for i in range(self.rows()):
@@ -93,7 +113,9 @@ class Matrix():
 
 
 # M = Matrix([[1, 2, 3], [4, 5, 6]])
+# M1 = Matrix((2, 3, 2))
 # print(M)
-# M1 = Matrix((3, 3, 2))
 # print(M1)
-# print(M * M1)
+# print(M - M1)
+# print(M)
+# print(M1)
