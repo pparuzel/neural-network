@@ -3,15 +3,15 @@ from linear_algebra import Matrix
 
 
 class Layer():
-    def __init__(self, inputN, outputN, bias=0):
+    def __init__(self, inputN, outputN):
         # weights
         self.synapses = Matrix(values=(inputN, outputN))
         # bias
-        self.bias = Matrix(values=(outputN, 1))
+        self.bias = Matrix(values=(1, outputN))
 
     def feedforward(self, data: Matrix):
-        # dot product
-        data = Matrix.dot(data, self.synapses, self.bias)
+        # matrix multiplication plus bias
+        data = data * self.synapses + self.bias
         # activation
         return NeuralNetwork.relu(data)
 
@@ -39,12 +39,17 @@ class NeuralNetwork():
             for row in range(layer.synapses.rows()):
                 for col in range(layer.synapses.cols()):
                     layer.synapses.m[row][col] = np.random.normal()
-            # randomize bias
-            for row in range(bias.rows()):
-                bias.m[row][0] = np.random.normal()
+                # randomize bias
+                for row in range(layer.bias.rows()):
+                    layer.bias.m[row][0] = np.random.normal()
 
     @staticmethod
+    # TODO: WRONG
     def relu(x):
+        if isinstance(x, Matrix):
+            pass
+        else:
+            pass
         return max(0, x)
 
     def loss(self, prediction, target):
@@ -64,9 +69,16 @@ class NeuralNetwork():
 
 
 def main():
-    mlp = NeuralNetwork(2, (2,), 1, learning_rate=0.0001)
-    mlp.randomize()
-    mlp.train(Matrix([1, 2]), Matrix([3]))
+    L1 = Layer(2, 3)
+    L2 = Layer(3, 1)
+    data = Matrix([10, 10])
+    data = L1.feedforward(data)
+    data = L2.feedforward(data)
+    print(data)
+
+    # mlp = NeuralNetwork(2, (2,), 1, learning_rate=0.0001)
+    # mlp.randomize()
+    # mlp.train(Matrix([1, 2]), Matrix([3]))
     # mlp.predict(Matrix([1, 2])
 
 
