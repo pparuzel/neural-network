@@ -17,11 +17,16 @@ class Matrix():
         return len(self.m[0])
 
     def __add__(self, rhs):
-        for row in range(self.rows()):
-            for col in range(self.cols()):
-                self.m[row][col] += rhs
-
-        return self
+        M = Matrix(self.m)
+        if not isinstance(rhs, Matrix):
+            for row in range(self.rows()):
+                for col in range(self.cols()):
+                    M.m[row][col] += rhs
+        else:
+            for row in range(self.rows()):
+                for col in range(self.cols()):
+                    M.m[row][col] += rhs.m[row][col]
+        return M
 
     @staticmethod
     def dot(L, R, bias=0):
@@ -42,16 +47,24 @@ class Matrix():
                 s += L[i][j] * R[j][i]
             M[i][j] = s
 
-    def __mult__(self, R):
-        if not isinstance(R, (int, float, complex, bool)):
-            raise BaseException("Method takes scalar only!")
+    def __mul__(self, rhs):
+        if not isinstance(rhs, Matrix):
+            M = Matrix(self.m)
             for row in range(self.rows()):
                 for col in range(self.cols()):
-                    self.m[row][col] *= R
+                    M.m[row][col] *= R
         else:
-            # TODO:
-            pass
-        return self
+            rows = self.rows()
+            if self.cols() != rhs.rows():
+                raise BaseException("Invalid matrix dimensions!")
+            M = Matrix(values=(rows, rhs.cols()))
+            for row in range(rows):
+                for col in range(rhs.cols()):
+                    s = 0
+                    for i in range(self.cols()):
+                        s += self.m[row][i] * rhs.m[i][col]
+                    M.m[row][col] = s
+        return M
 
     # ~Matrix() - transposition overload
     def __invert__(self):
@@ -81,6 +94,6 @@ class Matrix():
 
 # M = Matrix([[1, 2, 3], [4, 5, 6]])
 # print(M)
-# M1 = Matrix((3, 2, 1))
+# M1 = Matrix((3, 3, 2))
 # print(M1)
-# print(Matrix.dot0(M, M1))
+# print(M * M1)
