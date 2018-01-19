@@ -8,14 +8,26 @@ class Layer():
         self.synapses = Matrix(values=(inputN, outputN))
         # bias
         self.bias = Matrix(values=(1, outputN))
+        # last evaluation of inputs weighted sum and output
+        self.inp = None
+        self.weisum = None
+        self.out = None
 
     def feedforward(self, data: Matrix):
+        # save the input matrix
+        self.inp = data
         # matrix multiplication plus bias
         data = data * self.synapses + self.bias
+        # save the weighted sum evaluation
+        self.weisum = data
         # activation
-        return NeuralNetwork.relu(data)
+        data = NeuralNetwork.relu(data)
+        # save the relu evaluation
+        self.out = data
 
-    # 0.5 STARTING BIAS
+        return data
+
+    # 0.5 MEAN BIAS
     def randomize(self):
         # randomize synapses
         for row in range(self.synapses.rows()):
