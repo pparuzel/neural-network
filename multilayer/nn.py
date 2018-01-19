@@ -71,9 +71,24 @@ class NeuralNetwork():
         else:
             return max(0, x)
 
-    # loss function - squared error
+    # derivative of activation function - ReLU'(x)
+    @staticmethod
+    def relu_p(x):
+        if isinstance(x, Matrix):
+            for row in range(x.rows()):
+                for col in range(x.cols()):
+                    x.m[row][col] = 1 if x.m[row][col] > 0 else 0
+            return x
+        else:
+            return 1 if x > 0 else 0
+
+    # loss function - squared error(p, t)
     def loss(self, prediction, target):
-        return (prediction - target) ** 2
+        return (target - prediction) ** 2
+
+    # derivative of loss function - squared error'(p, t)
+    def loss_p(self, prediction, target):
+        return 2 * (prediction - target)
 
     # function propagating value through neural network
     def predict(self, inputData, expectedOutput):
