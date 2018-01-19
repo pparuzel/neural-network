@@ -34,8 +34,9 @@ class Layer():
             for col in range(self.synapses.cols()):
                 self.synapses.m[row][col] = np.random.normal() + 0.5
             # randomize bias
-            for row in range(self.bias.rows()):
-                self.bias.m[row][0] = np.random.normal() + 0.5
+            for rowb in range(self.bias.rows()):
+                for colb in range(self.bias.cols()):
+                    self.bias.m[rowb][0] = np.random.normal() + 0.5
 
     def __repr__(self):
         return "Layer<{!r}>".format(self.synapses)
@@ -57,10 +58,11 @@ class NeuralNetwork():
 
     # randomize synapses and bias
     def randomize(self):
+        # do not randomize output-layer bias
         for layer in self.layers:
             layer.randomize()
 
-    # activation function - ReLU
+    # activation function - ReLU(x)
     @staticmethod
     def relu(x):
         if isinstance(x, Matrix):
@@ -95,6 +97,8 @@ class NeuralNetwork():
         for layer in self.layers:
             inputData = layer.feedforward(inputData)
         cost = self.loss(inputData, expectedOutput)
+        # sum of loss function TODO: is it correct?
+        cost = sum(cost.m[0])
         return inputData, cost
 
     # feedforward and apply backpropagation
