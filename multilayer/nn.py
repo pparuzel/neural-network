@@ -106,13 +106,35 @@ class NeuralNetwork():
         prediction, cost = self.predict(inputData, expectedOutput)
         print("Pred: {}\nCost: {}".format(prediction, cost))
         # TODO: backpropagation algorithm
+        # output layer update
+        # check if at least 2 layers exist
+        outputLayer = self.layers[-2:][1]
+        hiddenLayer = self.layers[-2:][0]
+        inp = outputLayer.inp
+        lin = outputLayer.weisum
+        out = outputLayer.out
+        dErr_dO = self.loss_p(out, expectedOutput)
+        dO_dZ = self.relu_p(lin)
+        # TODO: macierz wag wyjedynkuj
+        #       przemnoz przez input
+        dZ_dW = self.dLin_dW(inp, outputLayer.synapses)
+        dErr_dW = dErr_dO * dO_dZ * dZ_dW
         # ...
+        # hidden layers update
+        # ...
+        for i in range(len(self.layers) - 1, -1, -1):
+            lin = self.layers[i].weisum
+            out = self.layers[i].out
+            dErr_dR = self.loss_p(out, expectedOutput)
+            dR_dZ = self.relu_p(lin)
+            # dZ_dW = ktoras value przy wadze W
+            dErr_dW = dErr_dR * dR_dZ * dZ_dW
 
 
 def main():
-    mlp = NeuralNetwork(2, (3,), 1, learning_rate=0.0001)
+    mlp = NeuralNetwork(2, (3,), 2, learning_rate=0.0001)
     mlp.randomize()
-    mlp.train(Matrix([1, 2]), Matrix([3]))
+    mlp.train(Matrix([1, 2]), Matrix([3, 4]))
 
 
 if __name__ == "__main__":
