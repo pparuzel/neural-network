@@ -8,7 +8,7 @@ class Layer():
         self.synapses = Matrix(values=(inputN, outputN))
         # bias
         self.bias = Matrix(values=(1, outputN))
-        # last evaluation of inputs weighted sum and output
+        # last evaluation of inputs, weighted sum and output
         self.inp = None
         self.weisum = None
         self.out = None
@@ -17,7 +17,8 @@ class Layer():
         # save the input matrix
         self.inp = data
         # matrix multiplication plus bias
-        data = data * self.synapses + self.bias
+        data *= self.synapses
+        data += self.bias
         # save the weighted sum evaluation
         self.weisum = data
         # activation
@@ -28,12 +29,14 @@ class Layer():
         return data
 
     # 0.5 MEAN BIAS
-    def randomize(self):
+    def randomize(self, hasBias=True):
         # randomize synapses
         for row in range(self.synapses.rows()):
             for col in range(self.synapses.cols()):
                 self.synapses.m[row][col] = np.random.normal() + 0.5
             # randomize bias
+            if not hasBias:
+                continue
             for rowb in range(self.bias.rows()):
                 for colb in range(self.bias.cols()):
                     self.bias.m[rowb][0] = np.random.normal() + 0.5
@@ -58,9 +61,10 @@ class NeuralNetwork():
 
     # randomize synapses and bias
     def randomize(self):
-        # do not randomize output-layer bias
-        for layer in self.layers:
+        for layer in self.layers[:-1]:
             layer.randomize()
+        # do not randomize output-layer bias
+        self.layers[-1:][0].randomize(hasBias=False)
 
     # activation function - ReLU(x)
     @staticmethod
@@ -85,12 +89,22 @@ class NeuralNetwork():
             return 1 if x > 0 else 0
 
     # loss function - squared error(p, t)
-    def loss(self, prediction, target):
-        return (target - prediction) ** 2
+    @staticmethod
+    def loss(prediction, target):
+        return 0.5 * (target - prediction) ** 2
 
     # derivative of loss function - squared error'(p, t)
-    def loss_p(self, prediction, target):
-        return 2 * (prediction - target)
+    @staticmethod
+    def loss_p(prediction, target):
+        return (prediction - target)
+
+    # derivative of linear combination with respect to weights
+    @staticmethod
+    def dNet_dW(inp, W):
+        T = ~inp
+        for row in range(T.rows()):
+            T.m[row] = T.m[row] * W.cols()
+        return T
 
     # function propagating value through neural network
     def predict(self, inputData, expectedOutput):
@@ -104,37 +118,48 @@ class NeuralNetwork():
     # feedforward and apply backpropagation
     def train(self, inputData, expectedOutput):
         prediction, cost = self.predict(inputData, expectedOutput)
-        print("Pred: {}\nCost: {}".format(prediction, cost))
         # TODO: backpropagation algorithm
-        # output layer update
-        # check if at least 2 layers exist
-        outputLayer = self.layers[-2:][1]
-        hiddenLayer = self.layers[-2:][0]
+        # * check if at least 2 layers exist
+        outputLayer = self.layers[-1:][0]
         inp = outputLayer.inp
-        lin = outputLayer.weisum
+        net = outputLayer.weisum
         out = outputLayer.out
+        # calculate outputlayer partial derivatives
         dErr_dO = self.loss_p(out, expectedOutput)
-        dO_dZ = self.relu_p(lin)
-        # TODO: macierz wag wyjedynkuj
-        #       przemnoz przez input
-        dZ_dW = self.dLin_dW(inp, outputLayer.synapses)
-        dErr_dW = dErr_dO * dO_dZ * dZ_dW
-        # ...
+        dO_dZ = self.relu_p(net)
+        dZ_dW = self.dNet_dW(inp, outputLayer.synapses)
+        # dErr/dW = dZ/dW * dO/dZ * dErr/dO
+        dErr_dW = dZ_dW.col_wise_mult(dErr_dO.HadamardProduct(dO_dZ))
+        # update synapses
+        outputLayer.synapses -= self.eta * dErr_dW
+        # no bias update in output layer
         # hidden layers update
         # ...
-        for i in range(len(self.layers) - 1, -1, -1):
-            lin = self.layers[i].weisum
-            out = self.layers[i].out
-            dErr_dR = self.loss_p(out, expectedOutput)
-            dR_dZ = self.relu_p(lin)
-            # dZ_dW = ktoras value przy wadze W
-            dErr_dW = dErr_dR * dR_dZ * dZ_dW
+        # for i in range(len(self.layers) - 1, -1, -1):
+        #     net = self.layers[i].weisum
+        #     out = self.layers[i].out
+        #     dErr_dR = loss_p(out, expectedOutput)
+        #     dR_dZ = relu_p(net)
+        #     # dZ_dW = ktoras value przy wadze W
+        #     dErr_dW = dErr_dR * dR_dZ * dZ_dW
+
+
+dataset = {(0, 0): (0,), (0, 1): (1,), (1, 0): (1,), (1, 1): (0,)}
 
 
 def main():
-    mlp = NeuralNetwork(2, (3,), 2, learning_rate=0.0001)
-    mlp.randomize()
-    mlp.train(Matrix([1, 2]), Matrix([3, 4]))
+    nn = NeuralNetwork(2, (3,), 1, learning_rate=0.01)
+    nn.randomize()
+    for i in range(10000):
+        index = np.random.randint(len(dataset))
+        inp = list(dataset.keys())[index]
+        out = dataset[inp]
+        nn.train(Matrix(list(inp)), Matrix(list(out)))
+    for e in dataset:
+        I = Matrix(list(e))
+        O = Matrix(list(dataset[e]))
+        pred, cost = nn.predict(I, O)
+        print("{} => {}\tPred: {}\tCost: {}".format(e, dataset[e], round(pred), cost))
 
 
 if __name__ == "__main__":
