@@ -126,29 +126,42 @@ class NeuralNetwork():
         out = outputLayer.out
         # calculate outputlayer partial derivatives
         dErr_dO = self.loss_p(out, expectedOutput)
-        dO_dZ = self.relu_p(net)
-        dZ_dW = self.dNet_dW(inp, outputLayer.synapses)
-        # dErr/dW = dZ/dW * dO/dZ * dErr/dO
-        dErr_dW = dZ_dW.col_wise_mult(dErr_dO.HadamardProduct(dO_dZ))
+        dO_dNet = self.relu_p(net)
+        dNet_dW = self.dNet_dW(inp, outputLayer.synapses)
+        # save calculation for dErr_dNet = dErr_dO * dO_dNet
+        dErr_dNet = dErr_dO.HadamardProduct(dO_dNet)
+        # dErr/dW = dErr/dNet * dNet/dW
+        dErr_dW = dNet_dW.col_wise_mult(dErr_dNet)
         # update synapses
         outputLayer.synapses -= self.eta * dErr_dW
         # no bias update in output layer
         # hidden layers update
         # ...
-        # for i in range(len(self.layers) - 1, -1, -1):
-        #     net = self.layers[i].weisum
-        #     out = self.layers[i].out
-        #     dErr_dR = loss_p(out, expectedOutput)
-        #     dR_dZ = relu_p(net)
-        #     # dZ_dW = ktoras value przy wadze W
-        #     dErr_dW = dErr_dR * dR_dZ * dZ_dW
+        for i in range(len(self.layers) - 1, -1, -1):
+            inp = self.layers[i].inp
+            net = self.layers[i].weisum
+            out = self.layers[i].out
+            for j in range(len(self.layers[i].out)):
+                # dNet/dH
+                dNet_dH = self.layers[i].synapses[i][j]
+            # use dErr/dNet saved from the previous calculation
+            dErr_dH = dErr_dNet * dNet_dH
+            # calculate partial derivatives
+            dNet_dW = self.dNet_dW(inp, self.layers[i].synapses)
+            # save calculation for dErr_dNet = dErr_dO * dO_dNet
+            dErr_dNet = dErr_dO.HadamardProduct(dO_dNet)
+            # dErr/dW = dErr/dNet * dNet/dW
+            dErr_dW = dNet_dW.col_wise_mult(dErr_dNet)
 
 
-dataset = {(0, 0): (0,), (0, 1): (1,), (1, 0): (1,), (1, 1): (0,)}
+# XOR Problem dataset
+# dataset = {(0, 0): (0,), (0, 1): (1,), (1, 0): (1,), (1, 1): (0,)}
+
+dataset = {(0, 0): (0, 0), (0, 1): (1, 1), (1, 0): (1, 1), (1, 1): (0, 0)}
 
 
 def main():
-    nn = NeuralNetwork(2, (3,), 1, learning_rate=0.01)
+    nn = NeuralNetwork(2, (3,), 2, learning_rate=0.01)
     nn.randomize()
     for i in range(10000):
         index = np.random.randint(len(dataset))
