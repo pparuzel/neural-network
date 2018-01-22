@@ -1,51 +1,90 @@
 import numpy as np
-from linear_algebra import Matrix
+import matplotlib.pyplot as plt
+
+
+''' Activation functions '''
+
+
+def relu(x):
+    '''
+    ReLU function
+    '''
+    return max(0, x)
+
+
+def relu_p(x):
+    '''
+    Derivative of ReLU function
+    '''
+    return int(x > 0)
+
+
+def sigmoid(x):
+    '''
+    Sigmoid function
+    '''
+    return 1 / (1 + np.exp(-x))
+
+
+def sigmoid_p(x):
+    '''
+    Derivative of Sigmoid function
+    '''
+    x = sigmoid(x)
+    return x * (1 - x)
+
+
+def loss(prediction, target):
+    '''
+    Mean squared error function (loss function)
+    '''
+    return 0.5 * (target - prediction) ** 2
+
+
+def loss_p(prediction, target):
+    '''
+    Derivative of mean squared error function
+    '''
+    return (prediction - target)
+
+
+''' ReLU seems to struggle with XOR surprisingly '''
+# act = np.vectorize(relu)
+# act_p = np.vectorize(relu_p)
+act = np.vectorize(sigmoid)
+act_p = np.vectorize(sigmoid_p)
 
 
 class Layer():
-    def __init__(self, inputN, outputN):
+    def __init__(self, inputN, outputN, isOutputLayer=False):
         # amount of in's & out's
         self.inputN = inputN
         self.outputN = outputN
         # weights
-        self.synapses = Matrix(values=(inputN, outputN))
+        self.synapses = np.random.randn(inputN, outputN)
         # bias
-        self.bias = Matrix(values=(1, outputN))
+        self.bias = np.random.normal() if not isOutputLayer else 0
         # last evaluation of inputs, weighted sum and output
         self.inp = None
-        self.weisum = None
+        self.net = None
         self.out = None
 
-    def feedforward(self, data: Matrix):
+    def feedforward(self, data):
         # save the input matrix
         self.inp = data
         # matrix multiplication plus bias
-        data *= self.synapses
-        data += self.bias
+        data = data.dot(self.synapses) + self.bias
         # save the weighted sum evaluation
-        self.weisum = data
+        self.net = data
         # activation
-        data = NeuralNetwork.relu(data)
-        # save the relu evaluation
+        data = act(data)
+        # save the activation evaluation
         self.out = data
 
         return data
 
-    # 0.5 MEAN BIAS
-    def randomize(self, hasBias=True):
-        # randomize synapses
-        for row in range(self.synapses.rows()):
-            for col in range(self.synapses.cols()):
-                self.synapses.m[row][col] = np.random.normal() + 0.5
-            # randomize bias
-            if not hasBias:
-                continue
-            for rowb in range(self.bias.rows()):
-                for colb in range(self.bias.cols()):
-                    self.bias.m[rowb][0] = np.random.normal() + 0.5
-
     def __repr__(self):
-        return "Layer<{!r}>".format(self.synapses)
+        return "Layer<{}, {}>".format(self.inputN, self.outputN)
 
 
 class NeuralNetwork():
@@ -60,144 +99,96 @@ class NeuralNetwork():
         self.layers.extend([Layer(hiddenN[i], hiddenN[i + 1])
                             for i in range(len(hiddenN) - 1)])
         # output layer
-        self.layers.append(Layer(hiddenN[-1:][0], outputN))
-
-    # randomize synapses and bias
-    def randomize(self):
-        for layer in self.layers[:-1]:
-            layer.randomize()
-        # do not randomize output-layer bias
-        self.layers[-1:][0].randomize(hasBias=False)
-
-    # activation function - ReLU(x)
-    @staticmethod
-    def relu(x):
-        if isinstance(x, Matrix):
-            for row in range(x.rows()):
-                for col in range(x.cols()):
-                    x.m[row][col] = max(0, x.m[row][col])
-            return x
-        else:
-            return max(0, x)
-
-    # derivative of activation function - ReLU'(x)
-    @staticmethod
-    def relu_p(x):
-        if isinstance(x, Matrix):
-            for row in range(x.rows()):
-                for col in range(x.cols()):
-                    x.m[row][col] = 1 if x.m[row][col] > 0 else 0
-            return x
-        else:
-            return 1 if x > 0 else 0
-
-    # loss function - squared error(p, t)
-    @staticmethod
-    def loss(prediction, target):
-        return 0.5 * (target - prediction) ** 2
-
-    # derivative of loss function - squared error'(p, t)
-    @staticmethod
-    def loss_p(prediction, target):
-        return (prediction - target)
-
-    # derivative of linear combination with respect to weights
-    @staticmethod
-    def dNet_dW(inp, W):
-        T = ~inp
-        for row in range(T.rows()):
-            T.m[row] = T.m[row] * W.cols()
-        return T
+        self.layers.append(Layer(hiddenN[-1:][0], outputN, isOutputLayer=True))
 
     # function propagating value through neural network
     def predict(self, inputData, expectedOutput):
+        '''
+        Method predicting output by feedforward algorithm
+        and calculating sum of all costs
+        '''
+        result = self.feedforward(inputData)
+        cost = loss(result, expectedOutput)
+        # sum of loss function
+        cost = np.sum(cost)
+        return result, cost
+
+    def feedforward(self, data):
+        '''
+        Method feeding data forward the network
+        '''
         for layer in self.layers:
-            inputData = layer.feedforward(inputData)
-        cost = self.loss(inputData, expectedOutput)
-        # sum of loss function TODO: is it correct?
-        cost = sum(cost.m[0])
-        return inputData, cost
+            data = layer.feedforward(data)
+        return data
 
-    # feedforward and apply backpropagation
     def train(self, inputData, expectedOutput):
-        prediction, cost = self.predict(inputData, expectedOutput)
-        # TODO: backpropagation algorithm
-        # * check if at least 2 layers exist
-        outputLayer = self.layers[-1:][0]
-        inp = outputLayer.inp
-        net = outputLayer.weisum
-        out = outputLayer.out
-        # calculate outputlayer partial derivatives
-        dErr_dO = self.loss_p(out, expectedOutput)
-        dO_dNet = self.relu_p(net)
-        dNet_dW = self.dNet_dW(inp, outputLayer.synapses)
-        # save calculation for dErr_dNet = dErr_dO * dO_dNet
-        dErr_dNet = dErr_dO.HadamardProduct(dO_dNet)
-        # dErr/dW = dErr/dNet * dNet/dW
-        dErr_dW = dNet_dW.col_wise_mult(dErr_dNet)
-        # update synapses
-        outputLayer.synapses -= self.eta * dErr_dW
-        # no bias update in output layer
-        # hidden layers update
-        for l in range(len(self.layers) - 2, -1, -1):
-            inp = self.layers[l].inp
-            net = self.layers[l].weisum
-            out = self.layers[l].out
-            X = dErr_dNet.m[0]
-            nX = []
-            DeltaW = []
-            for i in range(self.layers[l].inputN):
-                DeltaW_i = []
-                for j in range(self.layers[l].outputN):
-                    q = self.relu_p(net).m[0][j]
-                    # prev layer synapses row
-                    pls = self.layers[l + 1].synapses.m[j]
-                    q *= sum(X[d] * pls[d] for d in range(len(X)))
-                    nX.append(q)
-                    DeltaW_i.append(inp.m[0][i] * q)
-                DeltaW.append(DeltaW_i)
-            X = nX
-            self.layers[l].synapses -= self.eta * Matrix(DeltaW)
-            # dErr_dH = Matrix(values=())
-            # for j in range(self.layers[l].outputN):
-            #     # dNet/dH === corresponding weight
-            #     dNet_dH = self.layers[l].synapses
-            #     # use dErr/dNet saved from the previous calculation
-            #     # TODO: Check if correct
-            #     dErr_dH += dNet_dH.col_wise_mult(dErr_dNet)
+        '''
+        Method training the network
+        given the input and the expected output
+        '''
+        # return value not needed
+        result = self.feedforward(inputData)
+        # plot
+        cost = loss(result, expectedOutput)
+        cost = np.sum(cost)
+        global costs
+        global incr
+        if incr % 1000 == 0:
+            print("Error:", cost)
+        incr += 1
+        costs.append(cost)
+
+        # output layer
+        layer = self.layers[-1:][0]
+        inp = layer.inp
+        net = layer.net
+        out = layer.out
+        # calculate partial derivatives
+        dErr_dOut = loss_p(out, expectedOutput)
+        dOut_dNet = act_p(net)
+        # save phi
+        phi = dErr_dOut * dOut_dNet
+        # update weights
+        layer.synapses -= self.eta * (inp.T.dot(phi))
+        # hidden layer
+        for li in range(len(self.layers) - 2, -1, -1):
+            layer = self.layers[li]
+            inp = layer.inp
+            net = layer.net
+            out = layer.out
             # calculate partial derivatives
-            # dH_dNet = self.relu_p(net)
-            # dNet_dW = self.dNet_dW(inp, self.layers[l].synapses)
-            # print(dNet_dW, repr(dNet_dW))
-            # raise
-            # # save calculation for dErr/dNet = dErr/dO * dO/dNet
-            # dErr_dNet = dErr_dH.HadamardProduct(dH_dNet)
-            # # dErr/dW = dErr/dNet * dNet/dW
-            # dErr_dW = dNet_dW.col_wise_mult(dErr_dNet)
-            # update synapses
-            # self.layers[l].synapses -= self.eta * dErr_dW
-            # TODO: UPDATE BIAS
+            dErr_dOut = phi.dot(self.layers[li + 1].synapses.T)
+            dOut_dNet = act_p(net)
+            # save phi
+            phi = dErr_dOut * dOut_dNet
+            # update weights
+            layer.synapses -= self.eta * (inp.T.dot(phi))
 
 
-# XOR Problem dataset
-# dataset = {(0, 0): (0,), (0, 1): (1,), (1, 0): (1,), (1, 1): (0,)}
-
-dataset = {(0, 0): (0, 0), (0, 1): (1, 1), (1, 0): (1, 1), (1, 1): (0, 0)}
+# array of costs
+costs = []
+# increment
+incr = 0
 
 
 def main():
-    nn = NeuralNetwork(2, (3,), 2, learning_rate=0.01)
-    nn.randomize()
+    nn = NeuralNetwork(2, (4,), 1, learning_rate=1)
+    # XOR problem input-output dataset
+    inp = np.array([[0, 0],
+                    [0, 1],
+                    [1, 0],
+                    [1, 1]])
+    out = np.array([[0],
+                    [1],
+                    [1],
+                    [0]])
     for i in range(10000):
-        index = np.random.randint(len(dataset))
-        inp = list(dataset.keys())[index]
-        out = dataset[inp]
-        nn.train(Matrix(list(inp)), Matrix(list(out)))
-    for e in dataset:
-        I = Matrix(list(e))
-        O = Matrix(list(dataset[e]))
-        pred, cost = nn.predict(I, O)
-        print("{} => {}\tPred: {}\tCost: {}".format(e, dataset[e], round(pred), cost))
+        nn.train(inp, out)
+
+    pred, cost = nn.predict(inp, out)
+    print(np.round(pred), cost, sep='\n')
+    plt.plot(costs)
+    plt.show()
 
 
 if __name__ == "__main__":
