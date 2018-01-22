@@ -4,6 +4,9 @@ from linear_algebra import Matrix
 
 class Layer():
     def __init__(self, inputN, outputN):
+        # amount of in's & out's
+        self.inputN = inputN
+        self.outputN = outputN
         # weights
         self.synapses = Matrix(values=(inputN, outputN))
         # bias
@@ -136,26 +139,43 @@ class NeuralNetwork():
         outputLayer.synapses -= self.eta * dErr_dW
         # no bias update in output layer
         # hidden layers update
-        # ...
-        for i in range(len(self.layers) - 1, -1, -1):
-            inp = self.layers[i].inp
-            net = self.layers[i].weisum
-            out = self.layers[i].out
-            dErr_dH = Matrix(values=(?))
-            for j in range(len(self.layers[i].out)):
-                # dNet/dH === corresponding weight
-                dNet_dH = self.layers[i].synapses[i][j]
-                # use dErr/dNet saved from the previous calculation
-                dErr_dH += dErr_dNet *? dNet_dH
+        for l in range(len(self.layers) - 2, -1, -1):
+            inp = self.layers[l].inp
+            net = self.layers[l].weisum
+            out = self.layers[l].out
+            X = dErr_dNet.m[0]
+            nX = []
+            DeltaW = []
+            for i in range(self.layers[l].inputN):
+                DeltaW_i = []
+                for j in range(self.layers[l].outputN):
+                    q = self.relu_p(net).m[0][j]
+                    # prev layer synapses row
+                    pls = self.layers[l + 1].synapses.m[j]
+                    q *= sum(X[d] * pls[d] for d in range(len(X)))
+                    nX.append(q)
+                    DeltaW_i.append(inp.m[0][i] * q)
+                DeltaW.append(DeltaW_i)
+            X = nX
+            self.layers[l].synapses -= self.eta * Matrix(DeltaW)
+            # dErr_dH = Matrix(values=())
+            # for j in range(self.layers[l].outputN):
+            #     # dNet/dH === corresponding weight
+            #     dNet_dH = self.layers[l].synapses
+            #     # use dErr/dNet saved from the previous calculation
+            #     # TODO: Check if correct
+            #     dErr_dH += dNet_dH.col_wise_mult(dErr_dNet)
             # calculate partial derivatives
-            dH_dNet = self.relu_p(net)
-            dNet_dW = self.dNet_dW(inp, self.layers[i].synapses)
-            # save calculation for dErr/dNet = dErr/dO * dO/dNet
-            dErr_dNet = dErr_dH.HadamardProduct(dH_dNet)
-            # dErr/dW = dErr/dNet * dNet/dW
-            dErr_dW = dNet_dW.col_wise_mult(dErr_dNet)
+            # dH_dNet = self.relu_p(net)
+            # dNet_dW = self.dNet_dW(inp, self.layers[l].synapses)
+            # print(dNet_dW, repr(dNet_dW))
+            # raise
+            # # save calculation for dErr/dNet = dErr/dO * dO/dNet
+            # dErr_dNet = dErr_dH.HadamardProduct(dH_dNet)
+            # # dErr/dW = dErr/dNet * dNet/dW
+            # dErr_dW = dNet_dW.col_wise_mult(dErr_dNet)
             # update synapses
-            self.layers[i].synapses -= self.eta * dErr_dW
+            # self.layers[l].synapses -= self.eta * dErr_dW
             # TODO: UPDATE BIAS
 
 
