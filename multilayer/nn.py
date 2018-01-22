@@ -141,17 +141,22 @@ class NeuralNetwork():
             inp = self.layers[i].inp
             net = self.layers[i].weisum
             out = self.layers[i].out
+            dErr_dH = Matrix(values=(?))
             for j in range(len(self.layers[i].out)):
-                # dNet/dH
+                # dNet/dH === corresponding weight
                 dNet_dH = self.layers[i].synapses[i][j]
-            # use dErr/dNet saved from the previous calculation
-            dErr_dH = dErr_dNet * dNet_dH
+                # use dErr/dNet saved from the previous calculation
+                dErr_dH += dErr_dNet *? dNet_dH
             # calculate partial derivatives
+            dH_dNet = self.relu_p(net)
             dNet_dW = self.dNet_dW(inp, self.layers[i].synapses)
-            # save calculation for dErr_dNet = dErr_dO * dO_dNet
-            dErr_dNet = dErr_dO.HadamardProduct(dO_dNet)
+            # save calculation for dErr/dNet = dErr/dO * dO/dNet
+            dErr_dNet = dErr_dH.HadamardProduct(dH_dNet)
             # dErr/dW = dErr/dNet * dNet/dW
             dErr_dW = dNet_dW.col_wise_mult(dErr_dNet)
+            # update synapses
+            self.layers[i].synapses -= self.eta * dErr_dW
+            # TODO: UPDATE BIAS
 
 
 # XOR Problem dataset
