@@ -50,5 +50,5 @@ This means that it is not possible to put one straight line between points (imag
    
 **Gradient Descent** calculations are in *photos/* folder
 
-For activation function I used **Sigmoid** (NOT *ReLU*).  
+For activation function I used **Sigmoid** (or *ReLU*).  
 Error function is called **Mean Squared loss function**.
