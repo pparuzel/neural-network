@@ -181,17 +181,17 @@ costs = []
 incr = 0
 
 
+# ELU function
 def ELU(x):
     return max(x, 0.1 * (np.exp(x) - 1))
 
 
+# ELU derivative
 def ELU_p(x):
     return max(1, 0.1 * (np.exp(x)))
 
 
-# ELU function
 act = np.vectorize(ELU)
-# ELU derivative
 act_p = np.vectorize(ELU_p)
 
 
