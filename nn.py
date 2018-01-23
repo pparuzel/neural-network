@@ -180,11 +180,13 @@ def main():
                     [1],
                     [1],
                     [0]])
+    print("Input:", inp, "Expected output:", out, sep="\n")
+
     for i in range(10000):
         nn.train(inp, out)
 
     pred, cost = nn.predict(inp, out)
-    print(np.round(pred), cost, sep='\n')
+    print("Prediction:", np.round(pred), "Loss:", cost, sep='\n')
     plt.figure(num="Costs")
     plt.title("Costs over epoch")
     plt.plot(costs)
