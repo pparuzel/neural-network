@@ -48,6 +48,11 @@ def loss_p(prediction, target):
     return (prediction - target)
 
 
+''' ReLU seems to struggle with XOR surprisingly '''
+# act = np.vectorize(relu)
+# act_p = np.vectorize(relu_p)
+
+
 class Layer():
     def __init__(self, inputN, outputN, isOutputLayer=False):
         # amount of in's & out's
@@ -61,11 +66,12 @@ class Layer():
         self.inp = None
         self.net = None
         self.out = None
-        ''' ReLU seems to struggle with XOR surprisingly '''
-        # act = np.vectorize(relu)
-        # act_p = np.vectorize(relu_p)
         self.act = np.vectorize(sigmoid)
         self.act_p = np.vectorize(sigmoid_p)
+
+    '''
+    Feedforward algorithm
+    '''
 
     def feedforward(self, data):
         # save the input matrix
@@ -86,8 +92,12 @@ class Layer():
 
 
 class NeuralNetwork():
-    # initialize Neural Network with an amount of inputNeurons,
-    # hiddenNeurons, outputNeurons, and a learning rate
+
+    '''
+    Initialize Neural Network with an amount of inputNeurons,
+    hiddenNeurons, outputNeurons, and a learning rate
+    '''
+
     def __init__(self, inputN, hiddenN, outputN, learning_rate):
         # learning rate
         self.eta = learning_rate
@@ -161,6 +171,8 @@ class NeuralNetwork():
             phi = dErr_dOut * dOut_dNet
             # update weights
             layer.synapses -= self.eta * (inp.T.dot(phi))
+            # bias update
+            layer.bias -= self.eta * phi
 
 
 # array of costs
@@ -169,8 +181,27 @@ costs = []
 incr = 0
 
 
+def ELU(x):
+    return max(x, 0.1 * (np.exp(x) - 1))
+
+
+def ELU_p(x):
+    return max(1, 0.1 * (np.exp(x)))
+
+
+# ELU function
+act = np.vectorize(ELU)
+# ELU derivative
+act_p = np.vectorize(ELU_p)
+
+
 def main():
-    nn = NeuralNetwork(2, (4,), 1, learning_rate=1)
+    nn = NeuralNetwork(2, (2,), 1, learning_rate=0.01)
+    # change activation function from sigmoid to ELU
+    for layer in nn.layers:
+        layer.act = act
+        layer.act_p = act_p
+
     # XOR problem input-output dataset
     inp = np.array([[0, 0],
                     [0, 1],
@@ -180,15 +211,11 @@ def main():
                     [1],
                     [1],
                     [0]])
-    print("Input:", inp, "Expected output:", out, sep="\n")
-
     for i in range(10000):
         nn.train(inp, out)
 
     pred, cost = nn.predict(inp, out)
-    print("Prediction:", np.round(pred), "Loss:", cost, sep='\n')
-    plt.figure(num="Costs")
-    plt.title("Costs over epoch")
+    print(np.round(pred), cost, sep='\n')
     plt.plot(costs)
     plt.show()
 
