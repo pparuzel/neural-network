@@ -185,6 +185,8 @@ def main():
 
     pred, cost = nn.predict(inp, out)
     print(np.round(pred), cost, sep='\n')
+    plt.figure(num="Costs")
+    plt.title("Costs over epoch")
     plt.plot(costs)
     plt.show()
 
