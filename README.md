@@ -35,6 +35,19 @@ Launch **nn.py** to see XOR problem solved by a Neural Network:
 ```
 python3 nn.py
 ```
+  
+## XOR problem
+![XOR](photos/xor_problem.png)  
+XOR problem is special for neural networks because it is not **linearly separable**.  
+This means that it is not possible to put one straight line between points (image above) in order to distinguish two types of colors.  
+
+| Input1 | Input2 | XOR output |
+| :----: | :----: | :--------: |
+| 0      | 0      | `0`        |
+| 0      | 1      | `1`        |
+| 1      | 0      | `1`        |
+| 1      | 1      | `0`        |
+   
 **Gradient Descent** calculations are in *photos/* folder
 
 For activation function I used **Sigmoid** (NOT *ReLU*).  
