@@ -191,6 +191,7 @@ def ELU_p(x):
     return max(1, 0.1 * (np.exp(x)))
 
 
+# vectorize function so that it works for matrices
 act = np.vectorize(ELU)
 act_p = np.vectorize(ELU_p)
 
@@ -215,7 +216,9 @@ def main():
         nn.train(inp, out)
 
     pred, cost = nn.predict(inp, out)
-    print(np.round(pred), cost, sep='\n')
+    print("Prediction:", np.round(pred), "Loss:", cost, sep='\n')
+    plt.figure(num="Costs")
+    plt.title("Costs over epoch")
     plt.plot(costs)
     plt.show()
 
