@@ -48,13 +48,6 @@ def loss_p(prediction, target):
     return (prediction - target)
 
 
-''' ReLU seems to struggle with XOR surprisingly '''
-# act = np.vectorize(relu)
-# act_p = np.vectorize(relu_p)
-act = np.vectorize(sigmoid)
-act_p = np.vectorize(sigmoid_p)
-
-
 class Layer():
     def __init__(self, inputN, outputN, isOutputLayer=False):
         # amount of in's & out's
@@ -68,6 +61,11 @@ class Layer():
         self.inp = None
         self.net = None
         self.out = None
+        ''' ReLU seems to struggle with XOR surprisingly '''
+        # act = np.vectorize(relu)
+        # act_p = np.vectorize(relu_p)
+        self.act = np.vectorize(sigmoid)
+        self.act_p = np.vectorize(sigmoid_p)
 
     def feedforward(self, data):
         # save the input matrix
@@ -77,7 +75,7 @@ class Layer():
         # save the weighted sum evaluation
         self.net = data
         # activation
-        data = act(data)
+        data = self.act(data)
         # save the activation evaluation
         self.out = data
 
@@ -145,7 +143,7 @@ class NeuralNetwork():
         out = layer.out
         # calculate partial derivatives
         dErr_dOut = loss_p(out, expectedOutput)
-        dOut_dNet = act_p(net)
+        dOut_dNet = layer.act_p(net)
         # save phi
         phi = dErr_dOut * dOut_dNet
         # update weights
@@ -158,7 +156,7 @@ class NeuralNetwork():
             out = layer.out
             # calculate partial derivatives
             dErr_dOut = phi.dot(self.layers[li + 1].synapses.T)
-            dOut_dNet = act_p(net)
+            dOut_dNet = layer.act_p(net)
             # save phi
             phi = dErr_dOut * dOut_dNet
             # update weights
