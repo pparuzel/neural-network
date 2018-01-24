@@ -5,14 +5,42 @@ import matplotlib.pyplot as plt
 ''' Activation functions '''
 
 
-def relu(x):
+def ELU(x):
+    '''
+    ELU function
+    '''
+    return max(x, 0.1 * (np.exp(x) - 1))
+
+
+def ELU_p(x):
+    '''
+    Derivative of ELU function
+    '''
+    return max(1, 0.1 * (np.exp(x)))
+
+
+def LeakyRelu(x):
+    '''
+    Leaky ReLU function
+    '''
+    return max(x, 0.01 * x)
+
+
+def LeakyRelu_p(x):
+    '''
+    Derivative of Leaky ReLU function
+    '''
+    return 1 if x > 0 else 0.01
+
+
+def ReLU(x):
     '''
     ReLU function
     '''
     return max(0, x)
 
 
-def relu_p(x):
+def ReLU_p(x):
     '''
     Derivative of ReLU function
     '''
@@ -34,6 +62,23 @@ def sigmoid_p(x):
     return x * (1 - x)
 
 
+def tanh(x):
+    '''
+    Tanh function
+    '''
+    p = np.exp(x)
+    q = np.exp(-x)
+    return (p - q) / (p + q)
+
+
+def tanh_p(x):
+    '''
+    Derivative of Tanh function
+    '''
+    x = tanh(x)
+    return 1 - x * x
+
+
 def loss(prediction, target):
     '''
     Mean squared error function (loss function)
@@ -48,13 +93,11 @@ def loss_p(prediction, target):
     return (prediction - target)
 
 
-''' ReLU seems to struggle with XOR surprisingly '''
-# act = np.vectorize(relu)
-# act_p = np.vectorize(relu_p)
-
-
 class Layer():
     def __init__(self, inputN, outputN, isOutputLayer=False):
+        '''
+        Network layer connecting input neurons with output neurons
+        '''
         # amount of in's & out's
         self.inputN = inputN
         self.outputN = outputN
@@ -66,14 +109,14 @@ class Layer():
         self.inp = None
         self.net = None
         self.out = None
+        # activation function
         self.act = np.vectorize(sigmoid)
         self.act_p = np.vectorize(sigmoid_p)
 
-    '''
-    Feedforward algorithm
-    '''
-
     def feedforward(self, data):
+        '''
+        Feedforward algorithm
+        '''
         # save the input matrix
         self.inp = data
         # matrix multiplication plus bias
@@ -171,7 +214,7 @@ class NeuralNetwork():
             phi = dErr_dOut * dOut_dNet
             # update weights
             layer.synapses -= self.eta * (inp.T.dot(phi))
-            # bias update
+            # update bias
             layer.bias -= self.eta * phi
 
 
@@ -181,27 +224,14 @@ costs = []
 incr = 0
 
 
-# ELU function
-def ELU(x):
-    return max(x, 0.1 * (np.exp(x) - 1))
-
-
-# ELU derivative
-def ELU_p(x):
-    return max(1, 0.1 * (np.exp(x)))
-
-
-# vectorize function so that it works for matrices
-act = np.vectorize(ELU)
-act_p = np.vectorize(ELU_p)
-
-
 def main():
+    # initialize neural network
     nn = NeuralNetwork(2, (2,), 1, learning_rate=0.01)
-    # change activation function from sigmoid to ELU
+    # change activation function (sigmoid is by default)
+    # remember to vectorize function so that it works for matrices
     for layer in nn.layers:
-        layer.act = act
-        layer.act_p = act_p
+        layer.act = np.vectorize(ELU)
+        layer.act_p = np.vectorize(ELU_p)
 
     # XOR problem input-output dataset
     inp = np.array([[0, 0],
@@ -218,7 +248,7 @@ def main():
     pred, cost = nn.predict(inp, out)
     print("Prediction:", np.round(pred), "Loss:", cost, sep='\n')
     plt.figure(num="Costs")
-    plt.title("Costs over epoch")
+    plt.title("Costs over epochs")
     plt.plot(costs)
     plt.show()
 
