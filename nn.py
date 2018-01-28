@@ -98,9 +98,6 @@ class Layer():
         '''
         Network layer connecting input neurons with output neurons
         '''
-        # amount of in's & out's
-        self.inputN = inputN
-        self.outputN = outputN
         # weights
         self.synapses = np.random.randn(inputN, outputN)
         # bias
