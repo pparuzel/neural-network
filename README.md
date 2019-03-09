@@ -1,6 +1,10 @@
 # neural-network
 Everything related to the neural networks I really need to explore
 
+The steps below show the inner workings of backpropagation algorithm.  
+I managed to grasp most of its bits because of that notes.
+![backprop](photos/backpropagation.jpg)
+
 _**NeuralNetwork class**_:  
 NeuralNetwork(V, H, O, LR)
 * V - _input matrix_
